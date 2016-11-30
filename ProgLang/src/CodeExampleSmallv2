@@ -1,0 +1,22 @@
+Main()
+{
+	print("function");
+	function test(){
+		print("inside function");
+		print("inside function2 ", 5+2);
+		x = 9;
+		print(x);
+		if (x > 10){
+			print("x is large");
+		}
+		else if (x equals? 10){
+			print("x is 10");
+		}
+		else{
+			print("x is small");
+		}
+	}
+	test();
+	print(2 ^ 10 * 2 / 2);
+
+}

@@ -1,0 +1,49 @@
+import "test.scm"; 
+Main(){ 
+   function test(){ 
+      x = 17; 
+      y = "zzStrZZ"; 
+      test2(y); 
+      z = x + y; 
+      a = a - z; 
+      b = a * z; 
+      c = a / z; 
+      b = z - a; 
+      } 
+   function test2(x){ 
+      if (x > 10){ 
+         print("x is large"); 
+         print(10 % 2); 
+         print(2 ^ 2); 
+         } 
+      else if (x equals? y){ 
+         print("x and y are equals"); 
+         } 
+      else if (true){ 
+         print(5.674); 
+         } 
+      else if (x <= 0){ 
+         print("x is empty or small"); 
+         } 
+      else { 
+         print("x is medium"); 
+         } 
+      while (x > 10){ 
+         print("still going"); 
+         x--; 
+         } 
+      for (startNum; EndNum; incType){ 
+         print("x done", x++); 
+         } 
+      } 
+   test(); 
+   class CLASS1 of CLASSTEST; 
+   CLASS1.function1(); 
+   class CLASST2 of CLASSTEST{ 
+      function function1(){ 
+         print("this is my function function1, inside of my class object"); 
+         } 
+      } 
+   class EMPTYCLASS{ 
+      } 
+   } 

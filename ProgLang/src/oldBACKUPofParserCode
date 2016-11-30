@@ -1,0 +1,747 @@
+import java.io.IOException;
+
+public class RecParse {
+
+	lexeme CurrentLexeme;
+	lexer myLex;
+	lexeme finalLex;
+	
+	public RecParse(lexeme current, lexer lex) {
+		// TODO Auto-generated constructor stub
+		CurrentLexeme = current;
+		myLex = lex;
+		if (CurrentLexeme.type == "ENDofINPUT"){
+			System.exit(0);
+		}
+		
+	}
+
+	public void recognizer() throws IOException{
+		program();
+	}
+	
+	public lexeme parser() throws Exception {
+       finalLex = program();
+       match("ENDofINPUT", "PARSER");
+       return finalLex;
+    }
+	
+	public boolean check(String type){
+		return CurrentLexeme.type.equals(type);
+	}
+	
+	public lexeme advance() throws IOException{
+		lexeme saveLex = CurrentLexeme;
+		CurrentLexeme = myLex.lex();
+		return saveLex;
+	}
+	
+	public lexeme match(String type, String funcStr) throws IOException{
+		matchNoAdvance(type, funcStr);
+		//System.out.println(CurrentLexeme.display());
+		//System.out.println(" here: " + type + " :lineNum: " + myLex.lineNumber + " :function: " + funcStr);
+		//System.out.println(myLex.lineNumber + ": " + CurrentLexeme.display());
+		return advance();
+	}
+
+	public void matchNoAdvance(String type, String funcStr){
+		if  (!check(type)){
+			//System.out.println(CurrentLexeme.display());
+			System.out.println(" syntax error! Expected: " + type + " on line: " + myLex.lineNumber );
+			//System.out.printf("syntax error! on line: " + myLex.lineNumber);
+			System.exit(0);
+		}
+	}
+	
+	
+	
+	/****************************************
+	 *        Pending functions
+	 ****************************************/
+	
+	public boolean importsPending(){
+		return check("IMPORT");
+	}
+	
+	public boolean mainPending(){
+		return check("FUNCTION");
+	}
+	
+	public boolean blockPending(){
+		return check("OPEN_BRACE");
+	}
+	
+	public boolean expressionPending(){
+		return unaryPending() || check("NOT") ;
+	}
+	
+	public boolean unaryPending(){
+		return check("INTEGER") || check("DECIMAL") || check("VARIABLE") || check("OPEN_PAREN") || check("MINUS") || check("STRING") || classFuncCallPending();
+	}
+	
+	public boolean optExpressionListPending(){
+		return expressionPending();
+	}
+	
+	public boolean operatorPending(){
+		return check("PLUS") || check("MINUS") || check("TIMES") || check("DIVIDES") || check("MOD") || check("CARET") || check("INCREMENT") || check("DECREMENT");
+	}
+	
+	public boolean comparatorsPending(){
+		return check("EQUALS?") || check("LESSTHANEQUALS") || check("GREATERTHANEQUALS") || check("LESSTHAN") || check("GREATERTHAN");
+	}
+	
+	public boolean optElsePending(){
+		return check("ELSE");
+	}
+	
+	public boolean ifStatementPending(){
+		return check("IF");
+	}
+	
+	public boolean statementsPending(){
+		return statementPending();
+	}
+	
+	public boolean whileLoopPending(){
+		return check("WHILE");
+	}
+	
+	public boolean forLoopPending(){
+		return check("FOR");
+	}
+	
+	public boolean classStructurePending(){
+		return check("CLASS");
+	}
+	
+	public boolean statementPending(){
+		return expressionPending() || ifStatementPending() || whileLoopPending() || forLoopPending() || printPending() || functionDefPending() || functionCallsPending() || classDefPending() || classFuncCallPending() || classBlockPending();
+	}
+	
+	public boolean classFuncCallPending(){
+		return check("VARIABLE");
+	}
+	
+	public boolean functionDefPending(){
+		///System.out.println("defpending");
+		return check("FUNCTION");
+	}
+	
+	public boolean optInitPending(){
+		return check("ASSIGN");
+	}
+	
+	public boolean optParamListPending(){
+		return paramListPending();
+	}
+	
+	public boolean paramListPending(){
+		return check("VARIABLE");
+	}
+	
+	public boolean nonOptVarDefPending(){
+		return  unaryPending() || check("VARIABLE") ;
+	}
+	
+	public boolean varDefPending(){
+		return check("VARIABLE");
+	}
+	
+	public boolean classBlockPending(){
+		return check("OPEN_BRACE");
+	}
+	
+	public boolean functionCallPending(){
+		return check("VARIABLE");
+	}
+	
+	public boolean functionCallsPending(){
+		return functionCallPending();
+	}
+	
+	public boolean printListPending(){
+		return expressionPending();
+	}
+	
+	public boolean classDefPending(){
+		return check("CLASS");
+	}
+	
+	public boolean printPending(){
+		return check("PRINT");
+	}
+	
+	public boolean incrementPending(){
+		return check("VARIABLE");
+	}
+	
+	public boolean decrementPending(){
+		return check("VARIABLE");
+	}
+	
+	public boolean conditionalPending(){
+		return check("AND") || check("OR");
+	}
+	
+	/***************************************
+	 * END PENDING FUNCTIONS
+	 * BEGIN MAIN FUNCTIONS
+	 * @throws IOException 
+	 ***************************************/
+	
+	public lexeme program() throws IOException{
+		//lexeme tree = new lexeme("PROGRAM");
+		lexeme left = imports();
+		lexeme right = main();
+		//main();
+		return new lexeme("PROGRAM", left, right);
+	}
+	
+	public lexeme imports() throws IOException{
+		if (check("IMPORT")){
+			lexeme tree = new lexeme("IMPORTSLEFT");
+			tree.left = match("IMPORT", "IMPORTS");
+			tree.right = match("STRING", "IMPORTS");
+			lexeme tree2 = new lexeme("IMPORTSRIGHT");
+			tree2.left = match("SEMICOLON", "IMPORTS");
+			tree2.right = new lexeme("EMPTY");
+			if (check("imports")){
+				tree2.right = imports();
+			}
+			return new lexeme("IMPORTS", tree, tree2);
+		}
+		else{
+			return new lexeme("IMPORTS", new lexeme("EMPTY"), new lexeme("EMPTY"));
+			//System.out.println("Empty");
+		}
+	}
+	
+	public lexeme main() throws IOException{
+		//match("FUNCTION");
+		lexeme tree = new lexeme("MAINLEFT");
+		lexeme tree2 = new lexeme("MAINRIGHT");
+		tree.left = match("MAIN", "MAIN");
+		tree.right = match("OPEN_PAREN", "MAIN");
+		tree2.left = match("CLOSE_PAREN", "MAIN");
+		tree2.right = block();
+		
+		return new lexeme("MAINFUNC", tree, tree2);
+	}
+	
+	public lexeme unary() throws IOException{
+		if (check("INTEGER")){
+			return new lexeme("UNARY", match("INTEGER", "UNARY"), new lexeme("EMPTY"));
+		}
+		else if (check("DECIMAL")){
+			return new lexeme("UNARY", match("DECIMAL", "UNARY"), new lexeme("EMPTY"));
+		}
+		else if(check("VARIABLE")){
+			lexeme tree = new lexeme("UNARYLEFT");
+			lexeme tree2 = new lexeme("UNARYRIGHT");
+			tree.left = match("VARIABLE", "UNARY");
+			if (check("OPEN_PAREN")){
+				tree.right = match("OPEN_PAREN", "UNARY");
+				tree2.left = optExpressionList();
+				tree2.right = match("CLOSE_PAREN", "UNARY");
+				return new lexeme("UNARY", tree, tree2);
+			}
+			else if (check("DOT")){
+				tree.right = match("DOT", "unary");
+				return new lexeme("UNARY", tree, functionCall());
+			}
+			return new lexeme("UNARY", tree.left, new lexeme("EMPTY"));
+		}
+		else if (check("STRING")){
+			return new lexeme("UNARY", match("STRING", "UNARY"), new lexeme("EMPTY"));
+		}
+		else if (check("OPEN_PAREN")){
+			lexeme tree = new lexeme("UNARYLEFT");
+			tree.left = match("OPEN_PAREN", "UNARY");
+			tree.right = expression();
+			return new lexeme("UNARY", tree, match("CLOSE_PAREN", "UNARY"));
+		}
+		else{
+			//match("MINUS", "UNARY");
+			//unary();
+			return new lexeme("UNARY", match("MINUS", "UNARY"), unary());
+		}
+	}
+	
+	public lexeme expression() throws IOException{
+		lexeme tree = new lexeme("EXPRESSIONLEFT");
+		if (unaryPending()){
+			tree.left = unary();
+			if(operatorPending()){
+				tree.right = operator();
+				return new lexeme("EXPRESSION", tree, expression());
+			}
+			else if (comparatorsPending()){
+				tree.right = comparators();
+				return new lexeme("EXPRESSION", tree, expression());
+			}
+			else if (check("ASSIGN")){
+				tree.right = match("ASSIGN", "expression");
+				return new lexeme("EXPRESSION", tree, expression());
+			}
+			return new lexeme("EXPRESSION", tree.left, new lexeme("EMPTY"));
+		}
+		else if (check("NOT")){
+			return new lexeme("EXPRESSION", match("NOT", "EXPRESSION"), expression());
+		}
+		else{
+			if(check("CLOSE_BRACE")){
+				return new lexeme("EXPRESSION", match("CLOSE_BRACE", "expression"), new lexeme("EMPTY"));
+			}
+			return new lexeme("EXPRESSION", new lexeme("EMPTY"), new lexeme("EMPTY"));
+		}
+		
+		
+		
+		
+	}
+	
+	public lexeme operator() throws IOException{
+		if(check("PLUS")){
+			return new lexeme("OPERATOR", match("PLUS", "OPERATOR"), new lexeme("EMPTY"));
+		}
+		else if (check("MINUS")){
+			return new lexeme("OPERATOR", match("MINUS", "OPERATOR"), new lexeme("EMPTY"));
+		}
+		else if (check("TIMES")){
+			return new lexeme("OPERATOR", match("TIMES", "OPERATOR"), new lexeme("EMPTY"));
+		}
+		else if (check("DIVIDES")){
+			return new lexeme("OPERATOR", match("DIVIDES", "OPERATOR"), new lexeme("EMPTY"));
+		}
+		else if (check("MOD")){
+			return new lexeme("OPERATOR", match("MOD", "operator"), new lexeme("EMPTY"));
+		}
+		else if (check("CARET")){
+			return new lexeme("OPERATOR", match("CARET", "operator"), new lexeme("EMPTY"));
+		}
+		else if (check("INCREMENT")){
+			return new lexeme("OPERATOR", match("INCREMENT", "operator"), new lexeme("EMPTY"));
+		}
+		else{
+			return new lexeme("OPERATOR", match("DECREMENT", "operator"), new lexeme("EMPTY"));
+		}
+	}
+	
+	public lexeme optExpressionList() throws IOException{
+		if (expressionPending()){
+			lexeme a = expression();
+			lexeme b = new lexeme("EMPTY");
+			if (check("COMMA")){
+				lexeme tree = new lexeme("optExpressionListLEFT");
+				tree.left = a;
+				tree.right = match("COMMA", "optExpressionList");
+				return new lexeme("optExpressionList", tree, optExpressionList());
+			}
+			return new lexeme("optExpressionList", a, b);
+		}
+		else{
+			return new lexeme("optExpressionList", new lexeme("EMPTY"), new lexeme("EMPTY"));
+			//System.out.println("EMPTY");
+		}
+	}
+	
+	public lexeme ifStatement() throws IOException{
+		lexeme tree = new lexeme("ifStatementLEFT");
+		lexeme tree2 = new lexeme("ifStatementRIGHT");
+		lexeme L2 = new lexeme("ifStatementLEFTLEFT");
+		lexeme L3 = new lexeme("ifStatementLEFTRIGHT");
+		lexeme R2 = new lexeme("ifStatementRIGHTLEFT");
+		L2.left = match("IF", "ifStatement");
+		L2.right = match("OPEN_PAREN", "ifStatement");
+		L3.left = ifGuts();
+		L3.right = match("CLOSE_PAREN", "ifStatement");
+		R2.left = block();
+		R2.right = optElse();
+		tree.left = L2;
+		tree.right = L3;
+		tree2.left = R2;
+		tree2.right = new lexeme("EMPTY");
+		return new lexeme("ifStatement", tree, tree2);
+	}
+	
+	public lexeme optElse() throws IOException{
+		if (check("ELSE")){
+			lexeme a = match("ELSE", "optElse");
+			if (blockPending()){
+				return new lexeme("optElse", a, block());
+			}
+			else{
+				return new lexeme("optElse", a, ifStatement());
+			}
+		}
+		else{
+			return new lexeme("optElse", new lexeme("EMPTY"), new lexeme("EMPTY"));
+			//System.out.println("EMPTY");
+		}
+	}
+	
+	public lexeme whileLoop() throws IOException{
+		lexeme tree = new lexeme("whileLoopLEFT");
+		lexeme tree2 = new lexeme("whileLoopRIGHT");
+		lexeme L2 = new lexeme("whileLoopLEFTLEFT");
+		lexeme L3 = new lexeme("whileLoopLEFTRIGHT");
+		lexeme R2 = new lexeme("whileLoopRIGHTLEFT");
+		L2.left = match("WHILE", "whileLoop");
+		L2.right = match("OPEN_PAREN", "whileLoop");
+		L3.left = expression();
+		L3.right = match("CLOSE_PAREN", "whileLoop");
+		R2.left = block();
+		R2.right = new lexeme("EMPTY");
+		tree.left = L2;
+		tree.right = L3;
+		tree2.left = R2;
+		tree2.right = new lexeme("EMPTY");
+		return new lexeme("whileLoop", tree, tree2);
+		
+	}
+	
+	public lexeme block() throws IOException{
+		lexeme tree = new lexeme("blockLEFT");
+		tree.left = match("OPEN_BRACE", "block");
+		tree.right = statements();
+		return new lexeme("block", tree, match("CLOSE_BRACE", "block"));
+	}
+	
+	public lexeme statement() throws IOException{
+		if (expressionPending()){
+			lexeme a = expression();
+			if (check("SEMICOLON")){
+				return new lexeme("statement", a, match("SEMICOLON", "statement"));
+			}
+			return new lexeme("statement", a, new lexeme("EMPTY"));
+			
+		}
+		else if (ifStatementPending()){
+			return new lexeme("statement", ifStatement(), new lexeme("EMPTY"));
+		}
+		else if (whileLoopPending()){
+			return new lexeme("statement", whileLoop(), new lexeme("EMPTY"));
+		}
+		else if (forLoopPending()){
+			return new lexeme("statement", forLoop(), new lexeme("EMPTY"));
+		}
+		else if (printPending()){
+			return new lexeme("statement", print(), new lexeme("EMPTY"));
+		}
+		else if (functionDefPending()){
+			return new lexeme("statement", functionDef(), new lexeme("EMPTY"));
+		}
+		else if (functionCallsPending()){
+			return new lexeme("statement", functionCalls(), new lexeme("EMPTY"));
+		}
+		else if (classDefPending()){
+			return new lexeme("statement", classDef(), new lexeme("EMPTY"));
+		}
+		else if (classFuncCallPending()){
+			return new lexeme("statement", classFuncCall(), new lexeme("EMPTY"));
+		}
+		else{
+			return new lexeme("statement", classBlock(), new lexeme("EMPTY"));
+		}
+	}
+	
+	public lexeme statements() throws IOException{
+		//System.out.println("--- STATEMENTS BEGIN ___ ");
+		lexeme a = statement();
+		//System.out.println("--- STATEMENTS END ___ ");
+		if (statementsPending()){
+			return new lexeme("statements", a, statements());
+		}
+		return new lexeme("statements", a, new lexeme("EMPTY"));
+	}
+	
+	public lexeme nonOptVarDef() throws IOException{
+		if (unaryPending()){
+			return new lexeme("nonOptVarDef", unary(), new lexeme("EMPTY"));
+		}
+		else{
+			lexeme tree = new lexeme("nonOptVarDefLEFT");
+			lexeme tree2 = new lexeme("nonOptVarDefRIGHT");
+			tree.left = match("VARIABLE", "nonOptVarDef");
+			tree.right = match("ASSIGN", "nonOptVarDef");
+			tree2.left = expression();
+			tree2.right = match("SEMICOLON", "nonOptVarDef");
+			return new lexeme("nonOptVarDef", tree, tree2);
+		}
+	}
+	
+	public lexeme varDef() throws IOException{
+		lexeme tree = new lexeme("varDefLEFT");
+		tree.left = match("VARIABLE", "varDef");
+		tree.right = optInit();
+		return new lexeme("varDef", tree, match("SEMICOLON", "varDef"));
+	}
+	
+	public lexeme optInit() throws IOException{
+		if (check("ASSIGN")){
+			return new lexeme("optInit", match("ASSIGN", "optInit"), expression());
+		}
+		else{
+			return new lexeme("optInit", new lexeme("EMPTY"), new lexeme("EMPTY"));
+			//System.out.println("EMPTY");
+		}
+	}
+	
+	public lexeme functionDef() throws IOException{
+		//System.out.println("func Def here");
+		lexeme tree = new lexeme("functionDefLEFT");
+		lexeme tree2 = new lexeme("functionDefRIGHT");
+		lexeme L2 = new lexeme("functionDefLEFTLEFT");
+		lexeme L3 = new lexeme("functionDefLEFTRIGHT");
+		lexeme R2 = new lexeme("functionDefRIGHTLEFT");
+		L2.left = match("FUNCTION", "functionDef");
+		L2.right = match("VARIABLE", "functionDef");
+		L3.left = match("OPEN_PAREN", "functionDef");
+		L3.right = optParamList();
+		R2.left = match("CLOSE_PAREN", "functionDef");
+		R2.right = block();
+		tree.left = L2;
+		tree.right = L3;
+		tree2.left = R2;
+		tree2.right = new lexeme("EMPTY");
+		return new lexeme("functionDef", tree, tree2);
+	}
+	
+	public lexeme paramList() throws IOException{
+		lexeme a = match("VARIABLE", "paramList");
+		if(check("COMMA")){
+			lexeme tree = new lexeme("paramListLEFT");
+			tree.left = a;
+			tree.right = match("COMMA", "paramList");
+			return new lexeme("paramList", tree, paramList());
+		}
+		return new lexeme("paramList", a, new lexeme("EMPTY"));
+	}
+	
+	public lexeme comparators() throws IOException{
+		if(check("EQUALS?")){
+			return new lexeme("comparators", match("EQUALS?", "comparators"), new lexeme("EMPTY"));
+		}
+		else if (check("LESSTHANEQUALS")){
+			return new lexeme("comparators", match("LESSTHANEQUALS", "comparators"), new lexeme("EMPTY"));
+		}
+		else if (check("GREATERTHANEQUALS")){
+			return new lexeme("comparators", match("GREATERTHANEQUALS", "comparators"), new lexeme("EMPTY"));
+		}
+		else if (check("LESSTHAN")){
+			return new lexeme("comparators", match("LESSTHAN", "comparators"), new lexeme("EMPTY"));
+		}
+		else{
+			return new lexeme("comparators", match("GREATERTHAN", "comparators"), new lexeme("EMPTY"));
+		}
+	}
+	
+	public lexeme optParamList() throws IOException{
+		if (paramListPending()){
+			return new lexeme("optParamList", paramList(), new lexeme("EMPTY"));
+		}
+		else{
+			return new lexeme("optParamList", new lexeme("EMPTY"), new lexeme("EMPTY"));
+			//System.out.println("EMPTY");
+		}
+	}
+	
+	public lexeme forLoop() throws IOException{
+		lexeme tree = new lexeme("forLoopLEFT");
+		lexeme tree2 = new lexeme("forLoopRIGHT");
+		lexeme L1 = new lexeme("forLoopLEFTLEFT");
+		lexeme L2 = new lexeme("forLoopLEFTRIGHT");
+		lexeme R1 = new lexeme("forLoopRIGHTLEFT");
+		lexeme R2 = new lexeme("forLoopRIGHTRIGHT");
+		lexeme R3 = new lexeme("forLoopRIGHTRIGHTLEFT");
+		L1.left = match("FOR", "forLoop");
+		L1.right = match("OPEN_PAREN", "forLoop");
+		L2.left = nonOptVarDef();
+		L2.right = match("SEMICOLON", "forLoop");
+		R1.left = expression();
+		R1.right = match("SEMICOLON", "forLoop");
+		R2.left = expression();
+		R3.left = match("CLOSE_PAREN", "forLoop");
+		R3.right = block();
+		tree.left = L1;
+		tree.right = L2;
+		tree2.left = R1;
+		tree2.right = R2;
+		R2.right = R3;
+		return new lexeme("forLoop", tree, tree2);
+	}
+	
+	public lexeme classStructure() throws IOException{
+		lexeme tree = new lexeme("classStructureLEFT");
+		tree.left = match("CLASS", "classStructure");
+		tree.right = match("VARIABLE", "classStructure");
+		return new lexeme("classStructure", tree, classBlock());
+	}
+	
+	public lexeme functionCalls() throws IOException{
+		lexeme a = functionCall();
+		if (functionCallsPending()){
+			return new lexeme("functionCalls", a, functionCalls());
+		}
+		return new lexeme("functionCalls", a, new lexeme("EMPTY"));
+	}
+	
+	public lexeme functionCall() throws IOException{
+		lexeme tree = new lexeme("functionCallLEFT");
+		lexeme L1 = new lexeme("functionCallLEFTLEFT");
+		lexeme L2 = new lexeme("functionCallLEFTRIGHT");
+		L1.left = match("VARIABLE", "functionCall");
+		L1.right = match("OPEN_PAREN", "functionCall");
+		L2.left = optParamList();
+		L2.right = match("CLOSE_PAREN", "functionCall");
+		tree.left = L1;
+		tree.right = L2;
+		return new lexeme("functionCall", tree, match("SEMICOLON", "functionCall"));
+	}
+	
+	public lexeme classBlock() throws IOException{
+		lexeme a = match("OPEN_BRACE", "classBlock");
+		if (check("CLOSE_BRACE")){
+			return new lexeme("classBlock", a, match("CLOSE_BRACE", "classBlock"));
+		}else{
+			lexeme tree = new lexeme("classBlockLEFT");
+			tree.left = a;
+			tree.right = statements();
+			return new lexeme("classBlock", tree, match("CLOSE_BRACE", "classBlock"));
+		}
+		
+		
+	}
+	
+	public lexeme classDef() throws IOException{
+		lexeme tree = new lexeme("classDefLEFT");
+		lexeme tree2 = new lexeme("classDefRIGHT");
+		tree.left = match("CLASS", "classDef");
+		tree.right = match("VARIABLE", "classDef");
+		if (check("OF")){
+			lexeme R1 = new lexeme("classDefRIGHTRIGHT");
+			tree2.left = match("OF", "classDef");
+			R1.left = match("VARIABLE", "classDef");
+			R1.right = new lexeme("EMPTY");
+			if (check("SEMICOLON")){
+				R1.right = match("SEMICOLON", "classDef");
+				
+			}else{
+				R1.right = classBlock();
+			}
+			tree2.right = R1;
+			return new lexeme("classDef", tree, tree2);
+		}
+		else{
+			if (check("SEMICOLON")){
+				return new lexeme("classDef", tree, match("SEMICOLON", "classDef"));
+			}else{
+				return new lexeme("classDef", tree, classBlock());
+			}
+		}
+		
+		
+	}
+	
+	public lexeme classFuncCall() throws IOException{
+		lexeme tree = new lexeme("classFuncCallLEFT");
+		tree.left = match("VARIABLE", "classFunctionCall");
+		tree.right = match("DOT", "classFunctionCall");
+		return new lexeme("classFuncCall", tree, functionCall());
+	}
+	
+	public lexeme print() throws IOException{
+		lexeme tree = new lexeme("printLEFT");
+		lexeme tree2 = new lexeme("printRIGHT");
+		lexeme R1 = new lexeme("printRIGHTRIGHT");
+		tree.left = match("PRINT", "print");
+		tree.right = match("OPEN_PAREN", "print");
+		tree2.left = printList();
+		tree2.right = R1;
+		R1.left = match("CLOSE_PAREN", "print");
+		R1.right = match("SEMICOLON", "print");
+		return new lexeme("print", tree, tree2);
+	}
+	
+	public lexeme printList() throws IOException{
+		if (expressionPending()){
+			lexeme a = expression();
+			if (check("COMMA")){
+				lexeme tree = new lexeme("printListLEFT");
+				tree.right = match("COMMA", "printList");
+				tree.left = a;
+				return new lexeme("printList", tree, printList());
+			}
+			return new lexeme("printList", a, new lexeme("EMPTY"));
+		}
+		else{
+			return new lexeme("printList", new lexeme("EMPTY"), new lexeme("EMPTY"));
+			//System.out.println("EMPTY");
+		}
+	}
+	
+	public lexeme increment() throws IOException{
+		lexeme tree = new lexeme("incrementLEFT");
+		lexeme tree2 = new lexeme("incrementRIGHT");
+		tree.left = match("VARIABLE", "increment");
+		tree.right = match("PLUS", "increment");
+		tree2.left = match("PLUS", "increment");
+		if (check("SEMICOLON")){
+			//System.out.println("we have semicolon");
+			tree2.right = match("SEMICOLON", "increment");
+		}
+		return new lexeme("increment", tree, tree2);
+	}
+	
+	public lexeme decrement() throws IOException{
+		lexeme tree = new lexeme("decrementLEFT");
+		lexeme tree2 = new lexeme("decrementRIGHT");
+		tree.left = match("VARIABLE", "decrement");
+		tree.right = match("MINUS", "decrement");
+		tree2.left = match("MINUS", "decrement");
+		if (check("SEMICOLON")){
+			//System.out.println("we have semicolon");
+			tree2.right = match("SEMICOLON", "decrement");
+		}
+		return new lexeme("decrement", tree, tree2);
+	}
+	
+	public lexeme conditional() throws IOException{
+		if (check("AND")){
+			return new lexeme("conditional", match("AND", "conditional"), new lexeme("EMPTY"));
+		}
+		else{
+			return new lexeme("conditional", match("OR", "conditional"), new lexeme("EMPTY"));
+		}
+	}
+	
+	public lexeme ifGuts() throws IOException{
+		if (expressionPending()){
+			lexeme a = expression();
+			if(conditionalPending()){
+				lexeme tree = new lexeme("ifGutsLEFT");
+				tree.left = a;
+				tree.right = conditional();
+				return new lexeme("ifGuts", tree, ifGuts());
+			}
+			return new lexeme("ifGuts", a, new lexeme("EMPTY"));
+		}
+		else if (check("true")){
+			return new lexeme("ifGuts", match("true", "ifGuts"), new lexeme("EMPTY"));
+		}
+		else if (check("false")){
+			return new lexeme("ifGuts", match("false", "ifGuts"), new lexeme("EMPTY"));
+		}
+		else{
+			lexeme tree = new lexeme("ifGutsLEFT");
+			lexeme tree2 = new lexeme("ifGutsRIGHT");
+			tree.left = match("NOT", "ifGuts");
+			tree.right = match("OPEN_PAREN", "ifGuts");
+			tree2.left = ifGuts();
+			tree2.right = match("CLOSE_PAREN", "ifGuts");
+			return new lexeme("ifGuts", tree, tree2);
+		}
+	}
+	
+}

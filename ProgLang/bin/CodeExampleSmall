@@ -1,0 +1,8 @@
+Main()
+{
+	function test(){
+		print (x + 2);
+	}
+
+	test();	
+}

@@ -1,0 +1,838 @@
+
+public class Evaluator {
+
+	private lexeme global;
+	private Environment e;
+	private boolean isClass = false;
+	
+	public Evaluator(){
+		e = new Environment();
+		global = e.create();
+	}
+	
+	 lexeme runEval(lexeme tree){
+		eval(tree, global);
+		//System.out.println(" test val " + e.lookup(tree.left.left, global));
+		return global;
+	}
+	
+	private lexeme eval(lexeme tree, lexeme env){
+		
+		if (tree == null || tree.type == "EMPTY"){
+			return null;
+		}
+		if (tree.type != tree.display()){
+			System.out.println("Eval called ... " + tree.type + " " + tree.display() );
+		}
+		else{
+			System.out.println("Eval called ... " + tree.type  );
+		}
+		switch(tree.type){
+		case "PROGRAM":
+			return evalProgram(tree, env);
+		case "IMPORTS":
+			return evalImports(tree,env);
+		case "MAINFUNC":
+			return evalMainFunc(tree,env);
+		case "UNARY":
+			return evalUnary(tree,env);
+		case "EXPRESSION":
+			return evalExpression(tree,env);
+		case "OPERATOR":
+			return evalOperator(tree,env);
+		case "optExpressionList":
+			return evalOptExpressionList(tree,env);
+		case "ifStatement":
+			return evalIfStatement(tree,env);
+		case "optElse":
+			return evalOptElse(tree,env);
+		case "ELSE":
+			return evalElse(tree,env);
+		case "whileLoop":
+			return evalWhileLoop(tree,env);
+		case "block":
+			return evalBlock(tree,env);
+		case "statement":
+			return evalStatement(tree,env);
+		case "statements":
+			return evalStatements(tree,env);
+		case "nonOptVarDef":
+			return evalNonOptVarDef(tree,env);
+		case "varDef":
+			return evalVarDef(tree,env);
+		case "optInit":
+			return evalOptInit(tree,env);
+		case "functionDef":
+			return evalFunctionDef(tree,env);
+		case "paramList":
+			return evalParamList(tree,env);
+		case "comparators":
+			return evalComparators(tree,env);
+		case "optParamList":
+			return evalOptParamList(tree,env);
+		case "forLoop":
+			return evalForLoop(tree,env);
+		case "classStructure":
+			return evalClassStructure(tree,env);
+		case "functionCalls":
+			return evalFunctionCalls(tree,env);
+		case "functionCall":
+			return evalFunctionCall(tree,env);
+		case "classBlock":
+			return evalClassBlock(tree,env);
+		case "classDef":
+			return evalClassDef(tree,env);
+		case "classFuncCall":
+			return evalClassFuncCall(tree,env);
+		case "print":
+			return evalPrint(tree,env);
+		case "printList":
+			return evalPrintList(tree,env);
+		case "increment":
+			return evalIncrement(tree,env);
+		case "decrement":
+			return evalDecrement(tree,env);
+		case "conditional":
+			return evalConditional(tree,env);
+		case "ifGuts":
+			return evalIfGuts(tree,env);
+		case "GLUE":
+			return evalGlue(tree, env);
+		
+			
+			
+			
+			
+		case "AND": return evalAnd(tree, env);
+		case "OR" : return evalOr(tree, env);
+		case "NOT": return evalNot(tree, env);
+		case "EMPTY":
+			return tree;
+		case "LESSTHAN":
+			return evalLessThan(tree, env);
+		case "GREATERTHAN":
+			return evalGreaterThan(tree, env);
+		case "LESSTHANEQUALS":
+			return evalLessThanEquals(tree, env);
+		case "GREATERTHANEQUALS":
+			return evalGreaterThanEquals(tree, env);
+		case "ASSIGN":
+			return evalAssign(tree, env);
+		case "EQUALS?":
+			return evalEquals(tree, env);
+		case "SEMICOLON":
+			return tree;
+		case "DECREMENT":
+			return evalDecrement(tree, env);
+		case "INCREMENT":
+			return evalIncrement(tree, env);
+		case "DOT":
+			return evalDot(tree, env);
+		case "MOD":
+			return evalMod(tree, env);
+		case "CARET":
+			return evalCaret(tree, env);
+		case "PLUS":
+			return evalPlus(tree, env);
+		case "MINUS":
+			return evalMinus(tree, env);
+		case "TIMES":
+			return evalTimes(tree, env);
+		case "DIVIDES":
+			return evalDivides(tree, env);
+		case "STRING":
+			return tree;
+		case "true":
+			return tree;
+		case "false":
+			return tree;
+		case "INTEGER":
+			//System.out.println("returning integer ");
+			return tree;
+		case "DECIMAL":
+			return tree;
+			
+			
+			
+		case "MAIN":
+			return evalMain(tree,env);
+		case "VARIABLE":
+			return evalVariable(tree,env);
+		case "PRINT":
+			return evalPrint(tree,env);
+		case "OF":
+			return evalOf(tree,env);
+		case "OPEN_PAREN":
+			return evalOpenParen(tree,env);
+		case "CLOSE_PAREN":
+			return evalCloseParen(tree,env);
+		case "OPEN_BRACE":
+			return evalOpenBrace(tree,env);
+		case "CLOSE_BRACE":
+			return evalCloseBrace(tree,env);
+
+		default:
+			System.err.printf("\nFatal error in Evaluator.java: bad expression %s\n", tree.type);
+			System.exit(0);
+			return null;
+			
+		}
+	}
+
+	private lexeme evalGlue(lexeme tree, lexeme env) {
+		eval(tree.left, env);
+		eval(tree.right, env);
+		return null;
+	}
+
+	private lexeme evalDivides(lexeme tree, lexeme env) {
+		lexeme left = eval(tree.left, env);
+		lexeme right = eval(tree.right, env);
+		/*
+		if(left.type.equals("INTEGER") && right.type.equals("INTEGER")){
+			return new lexeme("INTEGER", left.integer / right.integer);
+		}
+		else if(left.type.equals("INTEGER") && right.type.equals("REAL")){
+			return new lexeme("REAL", left.integer / right.real);
+		}
+		else if(left.type.equals("REAL") && right.type.equals("INTEGER")){
+			return new lexeme("REAL", left.real / right.integer);
+		}
+		else{
+			return new lexeme("REAL", left.real / right.real);
+		}
+		*/ 
+		return null;
+	}
+
+	private lexeme evalTimes(lexeme tree, lexeme env) {
+		lexeme left = eval(tree.left, env);
+		lexeme right = eval(tree.right, env);
+		/*
+		if(left.type.equals("INTEGER") && right.type.equals("INTEGER")){
+			return new lexeme("INTEGER", left.integer * right.integer);
+		}
+		else if(left.type.equals("INTEGER") && right.type.equals("REAL")){
+			return new lexeme("REAL", left.integer * right.real);
+		}
+		else if(left.type.equals("REAL") && right.type.equals("INTEGER")){
+			return new lexeme("REAL", left.real * right.integer);
+		}
+		else{
+			return new lexeme("REAL", left.real * right.real);
+		}
+		*/
+		return null;
+	}
+
+	private lexeme evalMinus(lexeme tree, lexeme env) {
+		lexeme left = eval(tree.left, env);
+		lexeme right = eval(tree.right, env);
+		/*
+		if(left.type.equals("INTEGER") && right.type.equals("INTEGER")){
+			return new lexeme("INTEGER", left.integer - right.integer);
+		}
+		else if(left.type.equals("INTEGER") && right.type.equals("REAL")){
+			return new lexeme("REAL", left.integer - right.real);
+		}
+		else if(left.type.equals("REAL") && right.type.equals("INTEGER")){
+			return new lexeme("REAL", left.real - right.integer);
+		}
+		else{
+			return new lexeme("REAL", left.real - right.real);
+		}
+		*/
+		return null;
+	}
+
+	private lexeme evalPlus(lexeme tree, lexeme env) {
+		lexeme left = eval(tree.left, env);
+		lexeme right = eval(tree.right, env);
+		/*
+		if(left.type.equals("INTEGER") && right.type.equals("INTEGER")){
+			return new lexeme("INTEGER", left.integer + right.integer);
+		}
+		else if(left.type.equals("INTEGER") && right.type.equals("REAL")){
+			return new lexeme("REAL", left.integer + right.real);
+		}
+		else if(left.type.equals("REAL") && right.type.equals("INTEGER")){
+			return new lexeme("REAL", left.real + right.integer);
+		}
+		else{
+			return new lexeme("REAL", left.real + right.real);
+		}
+		*/
+		return null;
+	}
+
+	private lexeme evalCaret(lexeme tree, lexeme env) {
+		lexeme left = eval(tree.left, env);
+		lexeme right = eval(tree.right, env);
+		if(left.type.equals("INTEGER") && right.type.equals("INTEGER")){
+			return new lexeme("INTEGER", Math.pow(left.integer, right.integer));
+		}
+		else if(left.type.equals("INTEGER") && right.type.equals("REAL")){
+			return new lexeme("REAL", Math.pow(left.integer, right.real));
+		}
+		else if(left.type.equals("REAL") && right.type.equals("INTEGER")){
+			return new lexeme("REAL", Math.pow(left.real, right.integer));
+		}
+		else{
+			return new lexeme("REAL", Math.pow(left.real, right.real));
+		}
+	}
+
+	private lexeme evalMod(lexeme tree, lexeme env) {
+		lexeme left = eval(tree.left, env);
+		lexeme right = eval(tree.right, env);
+		return new lexeme("INTEGER", left.integer % right.integer);
+	}
+
+	private lexeme evalEquals(lexeme tree, lexeme env) {
+		lexeme left = eval(tree.left, env);
+		lexeme right = eval(tree.right, env);
+		/*
+		if(left.type.equals("INTEGER") && right.type.equals("INTEGER")){
+			boolean save = left.integer == right.integer;
+			return new lexeme(Boolean.toString(save), save);
+		}
+		else if(left.type.equals("INTEGER") && right.type.equals("REAL")){
+			boolean save = left.integer == right.integer;
+			return new lexeme(Boolean.toString(save), save);
+		}
+		else if(left.type.equals("REAL") && right.type.equals("INTEGER")){
+			boolean save = left.integer == right.integer;
+			return new lexeme(Boolean.toString(save), save);
+		}
+		else if(left.type.equals("REAL") && right.type.equals("REAL")){
+			boolean save = left.integer == right.integer;
+			return new lexeme(Boolean.toString(save), save);
+		}
+		else if(left.type.equals("STRING") && right.type.equals("STRING")){
+			boolean save = left.stringToken.equals(right.stringToken);
+			return new lexeme(Boolean.toString(save), save);
+		}
+		else if(left.type.equals("true") && right.type.equals("true")){
+			boolean save = left.integer == right.integer;
+			return new lexeme(Boolean.toString(save), save);
+		}
+		else if(left.type.equals("false") && right.type.equals("false")){
+			boolean save = left.integer == right.integer;
+			return new lexeme(Boolean.toString(save), save);
+		}
+		else if(left.type.equals("EMPTY") && !right.type.equals("true")){
+			return new lexeme("false", false);
+		}
+		else if(!left.type.equals("EMPTY") && right.type.equals("EMPTY")){
+			return new lexeme("false", false);
+		}
+		else if(left.type.equals("EMPTY") && right.type.equals("EMPTY")){
+			return new lexeme("true", true);
+		}
+		else{
+			System.out.printf("\nFatal error in Evaluator.java: Type mismatch when comparing %s and %s\n", left.type, right.type);
+			System.exit(0);
+			return null;
+		}
+		*/
+		return null;
+	}
+
+	private lexeme evalGreaterThanEquals(lexeme tree, lexeme env) {
+		lexeme left = eval(tree.left, env);
+		lexeme right = eval(tree.right, env);
+		/*
+		if(left.type.equals("INTEGER") && right.type.equals("INTEGER")){
+			return new lexeme("INTEGER", left.integer >= right.integer);
+		}
+		else if(left.type.equals("INTEGER") && right.type.equals("REAL")){
+			return new lexeme("REAL", left.integer >= right.real);
+		}
+		else if(left.type.equals("REAL") && right.type.equals("INTEGER")){
+			return new lexeme("REAL", left.real >= right.integer);
+		}
+		else{
+			return new lexeme("REAL", left.real >= right.real);
+		}
+		*/
+		return null;
+	}
+
+	private lexeme evalLessThanEquals(lexeme tree, lexeme env) {
+		lexeme left = eval(tree.left, env);
+		lexeme right = eval(tree.right, env);
+		/*if(left.type.equals("INTEGER") && right.type.equals("INTEGER")){
+			return new lexeme("INTEGER", left.integer <= right.integer);
+		}
+		else if(left.type.equals("INTEGER") && right.type.equals("REAL")){
+			return new lexeme("REAL", left.integer <= right.real);
+		}
+		else if(left.type.equals("REAL") && right.type.equals("INTEGER")){
+			return new lexeme("REAL", left.real <= right.integer);
+		}
+		else{
+			return new lexeme("REAL", left.real <= right.real);
+		}
+		*/
+		return null;
+	}
+
+	private lexeme evalGreaterThan(lexeme tree, lexeme env) {
+		lexeme left = eval(tree.left, env);
+		lexeme right = eval(tree.right, env);
+		/*if(left.type.equals("INTEGER") && right.type.equals("INTEGER")){
+			return new lexeme("INTEGER", left.integer > right.integer);
+		}
+		else if(left.type.equals("INTEGER") && right.type.equals("REAL")){
+			return new lexeme("REAL", left.integer > right.real);
+		}
+		else if(left.type.equals("REAL") && right.type.equals("INTEGER")){
+			return new lexeme("REAL", left.real > right.integer);
+		}
+		else{
+			return new lexeme("REAL", left.real > right.real);
+		}
+		*/
+		return null;
+	}
+
+	private lexeme evalLessThan(lexeme tree, lexeme env) {
+		lexeme left = eval(tree.left, env);
+		lexeme right = eval(tree.right, env);
+		/*if(left.type.equals("INTEGER") && right.type.equals("INTEGER")){
+			return new lexeme("INTEGER", left.integer < right.integer);
+		}
+		else if(left.type.equals("INTEGER") && right.type.equals("REAL")){
+			return new lexeme("REAL", left.integer < right.real);
+		}
+		else if(left.type.equals("REAL") && right.type.equals("INTEGER")){
+			return new lexeme("REAL", left.real < right.integer);
+		}
+		else{
+			return new lexeme("REAL", left.real < right.real);
+		}
+		*/
+		return null;
+	}
+
+	private lexeme evalOr(lexeme tree, lexeme env) {
+		if (eval(tree.left, env).boolToken || eval(tree.right, env).boolToken){
+			return new lexeme("AND", true);
+		}
+		else{
+			return new lexeme("AND", false);
+		}
+	}
+
+	private lexeme evalAnd(lexeme tree, lexeme env) {
+		if (eval(tree.left, env).boolToken && eval(tree.right, env).boolToken){
+			return new lexeme("AND", true);
+		}
+		else{
+			return new lexeme("AND", false);
+		}
+	}
+
+	private lexeme evalNot(lexeme tree, lexeme env) {
+		lexeme result = eval(tree.right, env);
+		result.boolToken = !result.boolToken;
+		return result;
+	}
+
+	private lexeme evalCloseBrace(lexeme tree, lexeme env) {
+		return null;
+	}
+
+	private lexeme evalOpenBrace(lexeme tree, lexeme env) {
+		return null;
+	}
+
+	private lexeme evalCloseParen(lexeme tree, lexeme env) {
+		return null;
+	}
+
+	private lexeme evalOpenParen(lexeme tree, lexeme env) {
+		return null;
+	}
+
+	private lexeme evalOf(lexeme tree, lexeme env) {
+		return null;
+	}
+
+	private lexeme evalVariable(lexeme tree, lexeme env) {
+		
+		return null;
+	}
+
+	private lexeme evalMain(lexeme tree, lexeme env) {
+		//System.out.println("here");
+		return null;
+	}
+
+	private lexeme evalDot(lexeme tree, lexeme env) {
+		//System.out.println("Starting dot: "+ tree.type);
+		//lexeme item = eval(tree.left, env);
+		//return eval(tree.right, e.extend(item.left, item.right.left, env));
+		isClass = true;
+		return null;
+	}
+
+	private lexeme evalAssign(lexeme tree, lexeme env) {
+		System.out.println("Assign BEGIN ------------- " + env);
+		lexeme result = eval(tree.right, env);
+		
+		//System.out.println(" 33333 " + tree.right.type);
+		/*if (tree.left.type.equals("ID")){
+			e.update(tree.left, result, env);
+			System.out.println("assigning val " + e.lookup(tree.left, env));
+		}
+		else if (tree.left.type.equals("DOT")){
+			
+			lexeme object = eval(tree.left.left, env);
+			e.update(tree.left.right, result, object);
+			System.out.println("assigning val2 " + e.lookup(tree.left.right, env));
+		}else{
+			
+		}
+		*/
+		//System.out.println(" jsadljasdlkj " + eval(tree.left, env));
+		e.update(tree.left.left, tree.right, env);
+		//System.out.println("assigning val2 " + e.lookup(tree.left, env));
+		
+		System.out.println("assign end --------------");
+		return result;
+	}
+
+
+	private lexeme evalIfGuts(lexeme tree, lexeme env) {
+		eval(tree.left, env);
+		eval(tree.right, env);
+		return null;
+	}
+
+	private lexeme evalConditional(lexeme tree, lexeme env) {
+		eval(tree.left, env);
+		eval(tree.right, env);
+		return null;
+	}
+
+	private lexeme evalDecrement(lexeme tree, lexeme env) {
+		lexeme left = eval(tree.left, env);
+		/*if(left.type.equals("INTEGER") ){
+			return new lexeme("INTEGER", left.integer - 1);
+		}
+		else{
+			return new lexeme("REAL", left.real - 1.0);
+		}
+		*/
+		return null;
+	}
+
+	private lexeme evalIncrement(lexeme tree, lexeme env) {
+		lexeme left = eval(tree.left, env);
+		/*if(left.type.equals("INTEGER") ){
+			return new lexeme("INTEGER", left.integer + 1);
+		}
+		else{
+			return new lexeme("REAL", left.real + 1.0);
+		}
+		*/
+		return null;
+	}
+
+	private lexeme evalPrintList(lexeme tree, lexeme env) {
+		lexeme eargs = evalParamList(tree.left, env);
+		
+		while(eargs != null){
+			System.out.print(eargs.left);
+			eargs = eargs.right;
+		}
+		
+		System.out.println();
+		return null;
+	}
+
+	private lexeme evalPrint(lexeme tree, lexeme env) {
+		lexeme eargs = evalParamList(tree.left, env);
+		
+		while(eargs != null){
+			System.out.print(eargs.left);
+			eargs = eargs.right;
+		}
+		return null;
+	}
+
+	private lexeme evalClassFuncCall(lexeme tree, lexeme env) {
+		lexeme closure = eval(tree.left, env);
+		lexeme args = tree.right.right.left;
+		lexeme params = closure.right.right.right.right.left;
+		lexeme body = closure.right.right.right.right.right.right.left;
+		lexeme senv = closure.left;
+		lexeme eargs = evalParamList(args, env);
+		lexeme xenv = e.extend(params,  eargs, senv);
+		
+		//e.insert(new lexeme("ID", "mug"), xenv, xenv); // defining objects
+		return eval(body, xenv);
+	}
+
+	private lexeme evalClassDef(lexeme tree, lexeme env) {
+		lexeme closure = new lexeme("CLOSURE", env, tree);
+		e.insert(tree.right.left, closure, env);
+		return null;
+	}
+
+	private lexeme evalClassBlock(lexeme tree, lexeme env) {
+		lexeme result = null;
+		while(tree != null){
+			result = eval(tree.left, env);
+			tree = tree.right;
+		}
+		return result;
+	}
+
+	private lexeme evalFunctionCall(lexeme tree, lexeme env) {
+		if (isClass == false){
+			lexeme closure = eval(tree.left, env);
+			lexeme args = tree.right.right.left;
+			lexeme params = closure.right.right.right.right.left;
+			lexeme body = closure.right.right.right.right.right.right.left;
+			lexeme senv = closure.left;
+			lexeme eargs = evalParamList(args, env);
+			lexeme xenv = e.extend(params,  eargs, senv);
+			isClass = false;
+			//e.insert(new lexeme("ID", "mug"), xenv, xenv); // defining objects
+			return eval(body, xenv);
+		}else{
+			return null;
+		}
+	}
+
+	private lexeme evalFunctionCalls(lexeme tree, lexeme env) {
+		eval(tree.left, env);
+		eval(tree.right, env);
+		return null;
+	}
+
+	private lexeme evalClassStructure(lexeme tree, lexeme env) {
+		//System.out.println("clasStructure BEGIN ------------------");
+		eval(tree.left, env);
+		eval(tree.right, env);
+		//System.out.println("classStructure end ------------------");
+		return null;
+	}
+
+	private lexeme evalForLoop(lexeme tree, lexeme env) {
+		//System.out.println("forLoopt BEGIN ------------------");
+		//eval(tree.left, env);
+		eval(tree.right, env);
+		//System.out.println("forloopEnd ------------------");
+		return null;
+	}
+
+	private lexeme evalOptParamList(lexeme tree, lexeme env) {
+		//System.out.println("OptParamList BEGIN ------------------");
+		eval(tree.left, env);
+		eval(tree.right, env);
+		//System.out.println("OptParamList END ------------------");
+		return null;
+	}
+
+	private lexeme evalComparators(lexeme tree, lexeme env) {
+		//System.out.println("comparators BEGIN ------------------");
+		eval(tree.left, env);
+		eval(tree.right, env);
+		//System.out.println("comparators end ------------------");
+		return null;
+	}
+
+	private lexeme evalParamList(lexeme tree, lexeme env) {
+		lexeme result = new lexeme("EVALEDPARAMLIST");
+		lexeme save = result;
+		while(tree != null){
+			lexeme value = eval(tree.left, env);
+			save.left = value;
+			tree = tree.right;
+			if (tree != null){
+				save.right = new lexeme("EVALEDPARAMLIST");
+				save = save.right;
+			}
+		}
+		return result;
+	}
+
+	private lexeme evalFunctionDef(lexeme tree, lexeme env) {
+		lexeme closure = new lexeme("CLOSURE", env, tree);
+		e.insert(tree.right.left, closure, env);
+		eval(tree.right, env);
+		return null;
+	}
+
+	private lexeme evalOptInit(lexeme tree, lexeme env) {
+		eval(tree.left, env);
+		eval(tree.right, env);
+		return null;
+	}
+
+	private lexeme evalVarDef(lexeme tree, lexeme env) {
+		/*if (tree.right.right.type.equals("SEMICOLON")){
+			e.insert(tree.right.left, new lexeme("EMPTY"), env);
+		}
+		else{
+			lexeme val = eval(tree.right.right.left.left, env);
+			e.insert(tree.right, val, env);
+		}
+		*/
+		e.insert(tree.right.left, new lexeme("NULL"), env);
+		return null;
+	}
+
+	private lexeme evalNonOptVarDef(lexeme tree, lexeme env) {
+		//eval(tree.left, env);
+		//eval(tree.right, env);
+		if (tree.left.type == "UNARY"){
+			e.insert(new lexeme("TEMP"), tree.right, env);
+		}
+		else{
+			lexeme result = eval(tree.right.right.left, env);
+			e.insert(tree.left, result, env);
+		}
+		return null;
+	}
+
+	private lexeme evalStatements(lexeme tree, lexeme env) {
+		lexeme result = null;
+		//System.out.println("Statements BEGIN ------------------");
+		while(tree != null){
+			result = eval(tree.left, env);
+			tree = tree.right;
+		}
+		//System.out.println("Statements END ------------------");
+		return result;
+	}
+
+	private lexeme evalStatement(lexeme tree, lexeme env) {
+		//System.out.println("Statement BEGIN ------------------");
+		lexeme result = eval(tree.left, env);
+		eval(tree.right, env);
+		//System.out.println("Statement END ------------------");
+		return result;
+	}
+
+	private lexeme evalBlock(lexeme tree, lexeme env) {
+		//System.out.println("Starting blovk: "+ tree.type);
+		//System.out.println("BLOCK BEGIN ------------------");
+		lexeme result = null;
+		while(tree != null){
+			result = eval(tree.left, env);
+			tree = tree.right;
+		}
+		//System.out.println("BLOCK END ------------------");
+		return result;
+	}
+
+	private lexeme evalWhileLoop(lexeme tree, lexeme env) {
+		lexeme result = eval(tree.right, env);
+		/*
+		while(eval(tree.left, env).boolToken){
+			result = eval(tree.right, env);
+		}
+		*/
+		return result;
+	}
+
+	private lexeme evalElse(lexeme tree, lexeme env) {
+		eval(tree.left, env);
+		eval(tree.right, env);
+		return null;
+	}
+
+	private lexeme evalOptElse(lexeme tree, lexeme env) {
+		return eval(tree.right, env);
+	}
+
+	private lexeme evalIfStatement(lexeme tree, lexeme env) {
+		/*if(eval(tree.left, env).boolToken){
+			return eval(tree.right, env);
+		}
+		else{
+			return eval(tree.right.left, env);
+		}
+		*/
+		//System.out.println("ifstatement BEGIN ------------------");
+		eval(tree.right, env);
+		//System.out.println("ifstatement end ------------------");
+		return null;
+	}
+
+	private lexeme evalOptExpressionList(lexeme tree, lexeme env) {
+		//System.out.println("OptExpressionList BEGIN ------------------");
+		eval(tree.left, env);
+		eval(tree.right, env);
+		//System.out.println("OptExpressionList END ------------------");
+		return null;
+	}
+
+	private lexeme evalOperator(lexeme tree, lexeme env) {
+		eval(tree.left, env);
+		eval(tree.right, env);
+		return null;
+	}
+
+	private lexeme evalExpression(lexeme tree, lexeme env) {
+		System.out.println("Expression BEGIN ------------------");
+		eval(tree.left, env);
+		//System.out.println("the result it is " + eval(tree.left, env).display());
+		
+		if (tree.right != null && tree.right.type != "EMPTY" ){
+			if (tree.right.left.type == "ASSIGN"){
+				System.out.println("assignment occuring ---------------------------- " +  tree.right.right.left.left.display());
+				eval(new lexeme("ASSIGN", tree.left, tree.right.right.left.left), env);
+				//System.out.println(tree.right.right.type);
+				System.out.println("assignment not occuring ---------------------------- " +  tree.right.left.type);
+				return null;
+			}
+			
+		}
+		//else{
+		//	eval(tree.right, env);
+		//}
+		System.out.println("Expression END ------------------");
+		return null;
+	}
+
+	private lexeme evalUnary(lexeme tree, lexeme env) {
+		System.out.println("unary BEGIN ------------------");
+		lexeme result  = tree.left;
+		System.out.println("unary result is " + tree.left.type);
+		eval(tree.right, env);
+		System.out.println("unary end ------------------");
+		return result;
+	}
+
+	private lexeme evalMainFunc(lexeme tree, lexeme env) {
+		//System.out.println("MAIN BEGIN ------------------");
+		eval(tree.left, env);
+		eval(tree.right, env);
+		//System.out.println("MAIN END ------------------");
+		return null;
+	}
+
+	private lexeme evalImports(lexeme tree, lexeme env) {
+		
+		if (tree.right != null){
+			//System.out.println("IMPORTS BEGIN ------------------");
+			eval(tree.right.left, env);
+			eval(tree.right.right, env);
+			//System.out.println("IMPORTS END --------------------");
+		}
+		return null;
+	}
+
+	private lexeme evalProgram(lexeme tree, lexeme env) {
+		eval(tree.left, env);
+		eval(tree.right, env);
+		return null;
+	}
+
+	
+}

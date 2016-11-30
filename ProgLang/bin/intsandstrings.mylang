@@ -1,0 +1,9 @@
+Main(){
+	print("This is a string");
+	# can you see this?
+	print(5);
+	print(1.754);
+	print(1+7);
+	print("That was an integer");
+
+}

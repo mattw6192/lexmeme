@@ -1,0 +1,13 @@
+Main(){
+	function testFunc(x){
+		y = 1;
+		i = 2;
+		for(i; i<x; i++){
+			y = y*i;
+		}
+		y;
+	}
+
+	testFunc(10);
+
+}

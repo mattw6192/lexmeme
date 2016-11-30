@@ -1,0 +1,149 @@
+program: imports main
+
+imports: IMPORT STRING SEMICOLON imports
+	   | IMPORT STRING SEMICOLON
+	   | *empty*
+
+main: MAIN OPEN_PAREN CLOSE_PAREN block
+
+unary: INTEGER
+	 | DECIMAL
+	 | VARIABLE
+	 | STRING
+	 | OPEN_PAREN expression CLOSE_PAREN
+	 | MINUS unary
+	 | VARIABLE OPEN_PAREN optExpressionList CLOSE_PAREN
+	 | classFuncCall
+	 | lambdaDef
+
+expression: unary
+		  | unary operator expression
+		  | unary comparators expression
+		  | unary ASSIGN expression
+		  | NOT expression
+		  | OPEN_BRACE printList CLOSE_BRACE
+		  | unary expression operator
+
+		  
+
+operator: PLUS
+		| MINUS
+		| TIMES
+		| DIVIDES
+		| MOD
+		| CARET
+		| INCREMENT
+		| DECREMENT
+
+optExpressionList: expression
+				 | expression COMMA optExpressionList
+				 | *empty*
+
+ifStatement: IF OPEN_PAREN ifGuts CLOSE_PAREN block optElse
+
+ifGuts: expression
+	  | expression conditional ifGuts
+	  | true
+	  | false
+	  | NOT OPEN_PAREN ifGuts CLOSE_PAREN
+
+conditional: AND
+		   | OR
+
+
+optElse: ELSE block
+	   | ELSE ifStatement
+	   | *empty*
+
+whileLoop: WHILE OPEN_PAREN expression CLOSE_PAREN block
+
+block: OPEN_BRACE statements CLOSE_BRACE
+
+statement: expression SEMICOLON
+		 | ifStatement
+		 | whileLoop
+		 | forLoop
+		 | print
+		 | functionDef
+		 | varDef
+		 | arrayDef
+		 | functionCalls
+		 | classDef
+		 | classFuncCall
+		 | classBlock
+		 | getArr
+		 | setArr
+		 | lambdaDef
+
+statements: statement
+		  | statement statements
+
+nonOptVarDef: unary
+			| VARIABLE ASSIGN expression SEMICOLON
+			
+
+varDef: VARIABLE optInit SEMICOLON
+
+optInit: ASSIGN expression
+	   | *empty*
+
+functionDef: FUNCTION VARIABLE OPEN_PAREN optParamList CLOSE_PAREN block
+
+paramList: VARIABLE
+		 | VARIABLE COMMA paramList
+
+comparators: EQUALS?
+		   | LESSTHANEQUALS
+		   | GREATERTHANEQUALS
+		   | LESSTHAN
+		   | GREATERTHAN
+
+optParamList: paramList
+			| *empty*
+
+forLoop: FOR OPEN_PARENS nonOptVarDef SEMICOLON expression SEMICOLON expression CLOSE_PAREN block
+
+classStructure: CLASS VARIABLE classBlock
+
+functionCalls: functionCall functionCalls
+			 | functionCall
+
+functionCall: VARIABLE OPEN_PAREN optParamList CLOSE_PAREN SEMICOLON
+			| lambdaCall
+
+classBlock: OPEN_BRACE CLOSE_BRACE
+		  | OPEN_BRACE statements CLOSE_BRACE
+		  
+
+classDef: CLASS VARIABLE OF VARIABLE SEMICOLON
+		| CLASS VARIABLE OF VARIABLE classBlock
+		| CLASS VARIABLE SEMICOLON
+		| CLASS VARIABLE classBlock
+
+classFuncCall: VARIABLE DOT functionCall
+
+print: PRINT OPEN_PAREN printList CLOSE_PAREN SEMICOLON
+
+printList: expression COMMA printList
+		 | expression
+		 | *empty*
+
+increment: VARIABLE PLUS PLUS SEMICOLON
+		 | VARIABLE PLUS PLUS 
+
+decrement: VARIABLE MINUS MINUS SEMICOLON
+		 | VARIABLE MINUS MINUS
+
+lambdaDef: LAMBDA OPEN_PAREN optParamList CLOSE_PAREN block
+
+lambdaCall: lambdaDef OPEN_PAREN optParamList CLOSE_PAREN SEMICOLON
+
+arrayDef: ARRAY VARIABLE OPEN_BRACE printList CLOSE_BRACE 
+		| ARRAY VARIABLE OPEN_BRACKET expression CLOSE_BRACKET 
+
+getArr: GETARR OPEN_PAREN VARIABLE COMMA expression COMMA expression CLOSE_PAREN 
+setArr: SETARR OPEN_PAREN VARIABLE COMMA expression COMMA expression COMMA expression CLOSE_PAREN 
+
+
+
+

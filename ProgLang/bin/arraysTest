@@ -1,0 +1,12 @@
+import "/Users/Matt/Documents/WorkspaceNew/ProgLang/src/CodeExampleSmallv2";
+
+Main(){
+	x = 5;
+	#
+	array testArr{x, 1 + 5, 2, 3}
+	y = testArr;
+	z = getArray(testArr, 1);
+	print(y, " value at index 1 is: ", z);
+	setArray(testArr, 1, 9);
+	print("set index 1 to val 9 ",y);
+}

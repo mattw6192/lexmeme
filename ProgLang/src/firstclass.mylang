@@ -1,0 +1,10 @@
+Main(){
+	function myTest(x){
+		z = x ^ 2;
+		function op(i){
+			q = x * i;
+		}
+		op(z);
+	}
+	myTest(5);
+}

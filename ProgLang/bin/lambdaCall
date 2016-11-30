@@ -1,0 +1,7 @@
+Main(){
+	x = 5;
+	lambda(x){
+		print("we made it");
+	}(x);
+	print("end code");
+}

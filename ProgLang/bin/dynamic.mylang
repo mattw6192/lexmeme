@@ -1,0 +1,6 @@
+Main(){
+	x = "string Here";
+	x = 5;
+	y = 4.322;
+
+}

@@ -1,0 +1,6 @@
+Main(){
+	print("This is a string");
+	# can you see this?
+	print("That was an integer");
+
+}

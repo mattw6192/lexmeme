@@ -1,0 +1,10 @@
+Main(){
+	function testFunc(x){
+		if (x > 0){
+			testFunc(x - 1);
+		}
+	}
+
+	testFunc(10);
+
+}

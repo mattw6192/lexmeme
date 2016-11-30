@@ -1,0 +1,4 @@
+Main(){
+	z = array testArr{x, 1 + 5, 2, 3}
+	print(z);
+}

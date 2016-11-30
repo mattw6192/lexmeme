@@ -1,0 +1,10 @@
+Main(){
+		function counter(x){
+			if (x < 10){
+				print(x);
+				x++;
+				counter(x);
+			}
+		}
+		counter(0);
+}

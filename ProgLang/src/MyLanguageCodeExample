@@ -1,0 +1,72 @@
+import "test.scm";
+# comment
+
+Main()
+{
+	function test(){
+		x = 17;
+		y = "zzStrZZ";
+		test2(y);
+		z = x + y;
+		a = a - z;
+		b = a * z;
+		c = a / z; b = z- a;
+		lambda (x) {x + y}
+		array  testArray{x, 1, 2, "stingy"}
+		array testArray2[5]
+		getArr(testArray, 2)
+		setArr(testArray, 2, "w")
+		testArray2 = {4, "st", 35}
+	}
+
+	test();	
+
+	function test2(x){
+		if (x > 10){
+			print("x is large");
+			print(10 % 2);
+			print(2 ^ 2);
+		}
+		else if (x equals? y){
+			print("x and y are equals");
+		}
+		else if (true){
+			print(5.674);
+		}
+		else if (x <= 0){
+			print("x is empty or small");
+		}
+		else{
+			print("x is medium");
+		}
+
+		while (x > 10){
+			print("still going");
+			x--;
+		}
+		
+
+		for (startNum; EndNum; incType){
+			print("x done", x++);
+		}
+	}
+	
+	
+	
+
+	class CLASS1 of CLASSTEST; # Object named class1 of class type CLASSTEST
+	CLASS1.function1();
+
+
+	class CLASST2 of CLASSTEST{
+		function function1(){
+			print("this is my function function1, inside of my class object");
+		}
+
+	}
+
+	class EMPTYCLASS{
+		# no items in this class
+	}
+#
+}

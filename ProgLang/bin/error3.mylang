@@ -1,0 +1,5 @@
+
+function test(x){
+	# No Main function
+	print("error");
+}

@@ -1,0 +1,8 @@
+Main(){
+	array testArray{3, 4, "hello", 5}
+	getArr(testArray, 2)
+	setArr(testArray, 2, "hi")
+	array test[5]
+	setArr(test, 4, "good evening")
+
+}

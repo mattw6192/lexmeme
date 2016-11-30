@@ -1,0 +1,8 @@
+Main(){
+	function testFunc(x){
+		print("Use the print command to print output");
+	}
+
+	testFunc(10);
+
+}
