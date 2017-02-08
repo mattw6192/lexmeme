@@ -6,6 +6,9 @@ CS 403
 Designer Programming Language
 
 
+[NOTE: Some features are incomplete or may have bugs in them at this time.]
+
+
 This language was built using Java.
 
 RUNNING THE PROGRAM
